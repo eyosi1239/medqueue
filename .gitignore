@@ -1,0 +1,23 @@
+# macOS
+.DS_Store
+
+# Java compiled output
+java-backend/out/
+
+# Python
+python-dsa/__pycache__/
+python-dsa/*.pyc
+python-dsa/patients.json
+*.pyc
+__pycache__/
+
+# Virtual environments
+venv/
+.venv/
+env/
+
+# IDE
+.idea/
+*.iml
+.vscode/
+*.class

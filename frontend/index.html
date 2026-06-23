@@ -1,0 +1,987 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>MedQueue Pro — Hospital Management</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,400&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet"/>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#F5F3EE;--surface:#FFFFFF;--surface2:#EFECE5;--surface3:#E6E2D8;
+  --border:rgba(0,0,0,0.08);--border2:rgba(0,0,0,0.15);
+  --text:#1C1B18;--text2:#6B6860;--text3:#A8A49C;
+  --teal:#0D7A5F;--teal-d:#075C47;--teal-l:#E0F2EB;--teal-m:#5BB394;
+  --coral:#C94B2D;--coral-l:#FAEDE9;--coral-m:#E8866E;
+  --amber:#B06A10;--amber-l:#FBF0E0;--amber-m:#E3A043;
+  --green:#3A6B10;--green-l:#EAF3DE;
+  --blue:#1A5FAB;--blue-l:#E6EFFA;
+  --purple:#6B3FA0;--purple-l:#F0EAF9;
+  --nav-w:220px;--radius:10px;--radius-sm:6px;--radius-lg:14px;
+  --font-display:'DM Serif Display',serif;--font-body:'DM Sans',sans-serif;
+}
+body{font-family:var(--font-body);background:var(--bg);color:var(--text);min-height:100vh;font-size:14px}
+
+/* ── Layout ── */
+.shell{display:flex;min-height:100vh}
+.nav{width:var(--nav-w);background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;position:fixed;top:0;left:0;height:100vh;z-index:100}
+.content-wrap{margin-left:var(--nav-w);flex:1;display:flex;flex-direction:column;min-height:100vh}
+
+/* ── Nav ── */
+.nav-logo{padding:20px 18px 16px;border-bottom:1px solid var(--border)}
+.nav-logo-name{font-family:var(--font-display);font-size:20px;color:var(--text);line-height:1}
+.nav-logo-sub{font-size:11px;color:var(--text3);margin-top:3px;letter-spacing:.03em}
+.nav-section{padding:16px 10px 8px;font-size:10px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.08em}
+.nav-item{display:flex;align-items:center;gap:9px;padding:8px 12px;border-radius:var(--radius-sm);cursor:pointer;color:var(--text2);font-size:13px;font-weight:400;transition:all .15s;margin:1px 8px}
+.nav-item:hover{background:var(--surface2);color:var(--text)}
+.nav-item.active{background:var(--teal-l);color:var(--teal);font-weight:500}
+.nav-item svg{width:16px;height:16px;flex-shrink:0;opacity:.7}
+.nav-item.active svg{opacity:1}
+.nav-badge{margin-left:auto;background:var(--coral);color:white;font-size:10px;font-weight:600;padding:1px 6px;border-radius:20px;min-width:18px;text-align:center}
+
+/* ── Top bar ── */
+.topbar{background:var(--surface);border-bottom:1px solid var(--border);padding:12px 24px;display:flex;align-items:center;gap:12px;position:sticky;top:0;z-index:50}
+.topbar-title{font-family:var(--font-display);font-size:20px;color:var(--text);flex:1}
+.topbar-sub{font-size:12px;color:var(--text3);margin-top:1px}
+
+/* ── Buttons ── */
+.btn{display:inline-flex;align-items:center;gap:6px;padding:8px 14px;font-size:13px;font-weight:500;border-radius:var(--radius-sm);border:1px solid var(--border2);background:var(--surface);color:var(--text);cursor:pointer;transition:all .15s;font-family:var(--font-body)}
+.btn:hover{background:var(--surface2)}
+.btn-primary{background:var(--teal);color:white;border-color:var(--teal)}
+.btn-primary:hover{background:var(--teal-d)}
+.btn-danger{background:var(--coral-l);color:var(--coral);border-color:var(--coral-m)}
+.btn-danger:hover{background:#f5d5cd}
+.btn-sm{padding:5px 10px;font-size:12px}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+
+/* ── Page ── */
+.page{display:none;padding:24px;flex:1}
+.page.active{display:block}
+
+/* ── Stats grid ── */
+.stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:24px}
+.stat-card{background:var(--surface);border-radius:var(--radius);padding:16px;border:1px solid var(--border)}
+.stat-icon{width:36px;height:36px;border-radius:var(--radius-sm);display:flex;align-items:center;justify-content:center;font-size:18px;margin-bottom:10px}
+.stat-val{font-size:28px;font-weight:600;line-height:1;font-family:var(--font-display)}
+.stat-label{font-size:12px;color:var(--text2);margin-top:4px}
+.stat-card.teal .stat-icon{background:var(--teal-l)}
+.stat-card.coral .stat-icon{background:var(--coral-l)}
+.stat-card.amber .stat-icon{background:var(--amber-l)}
+.stat-card.blue .stat-icon{background:var(--blue-l)}
+.stat-card.teal .stat-val{color:var(--teal)}
+.stat-card.coral .stat-val{color:var(--coral)}
+.stat-card.amber .stat-val{color:var(--amber)}
+.stat-card.blue .stat-val{color:var(--blue)}
+
+/* ── Cards ── */
+.card{background:var(--surface);border-radius:var(--radius);border:1px solid var(--border);overflow:hidden}
+.card-header{padding:14px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px}
+.card-title{font-size:14px;font-weight:500;flex:1}
+.card-body{padding:16px}
+
+/* ── Table ── */
+.table-wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse}
+th{text-align:left;font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.05em;padding:10px 14px;border-bottom:1px solid var(--border);background:var(--surface2)}
+td{padding:10px 14px;border-bottom:1px solid var(--border);font-size:13px;vertical-align:middle}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:var(--surface2)}
+
+/* ── Badges ── */
+.badge{font-size:11px;font-weight:500;padding:2px 8px;border-radius:20px}
+.badge-emergency{background:var(--coral-l);color:var(--coral)}
+.badge-urgent{background:var(--amber-l);color:var(--amber)}
+.badge-normal{background:var(--green-l);color:var(--green)}
+.badge-available{background:var(--green-l);color:var(--green)}
+.badge-busy{background:var(--amber-l);color:var(--amber)}
+.badge-off{background:var(--surface2);color:var(--text2)}
+.badge-scheduled{background:var(--blue-l);color:var(--blue)}
+.badge-completed{background:var(--green-l);color:var(--green)}
+.badge-cancelled{background:var(--surface2);color:var(--text2)}
+.badge-unpaid{background:var(--coral-l);color:var(--coral)}
+.badge-paid{background:var(--green-l);color:var(--green)}
+
+/* ── Forms ── */
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.form-grid.cols-3{grid-template-columns:1fr 1fr 1fr}
+.form-grid.cols-1{grid-template-columns:1fr}
+.field{display:flex;flex-direction:column;gap:4px}
+.field.span-2{grid-column:span 2}
+.field label{font-size:12px;color:var(--text2);font-weight:500}
+.field input,.field select,.field textarea{padding:8px 10px;font-size:13px;border:1px solid var(--border2);border-radius:var(--radius-sm);background:var(--bg);color:var(--text);outline:none;transition:border-color .15s;font-family:var(--font-body)}
+.field input:focus,.field select:focus,.field textarea:focus{border-color:var(--teal);background:var(--surface)}
+.field textarea{resize:vertical;min-height:70px}
+
+/* ── Priority selector ── */
+.priority-group{display:flex;gap:6px}
+.prio-opt{flex:1;padding:7px 6px;text-align:center;font-size:12px;font-weight:500;border:1px solid var(--border2);border-radius:var(--radius-sm);cursor:pointer;transition:all .15s;color:var(--text2)}
+.prio-opt.sel-emergency{background:var(--coral-l);color:var(--coral);border-color:var(--coral-m)}
+.prio-opt.sel-urgent{background:var(--amber-l);color:var(--amber);border-color:var(--amber-m)}
+.prio-opt.sel-normal{background:var(--green-l);color:var(--green);border-color:#97C459}
+
+/* ── Modal ── */
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:200;display:none;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(2px)}
+.overlay.open{display:flex}
+.modal{background:var(--surface);border-radius:var(--radius-lg);width:100%;max-width:560px;max-height:90vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.2)}
+.modal-header{padding:18px 20px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center}
+.modal-title{font-family:var(--font-display);font-size:18px;flex:1}
+.modal-close{background:none;border:none;font-size:20px;cursor:pointer;color:var(--text3);padding:2px 6px;border-radius:4px}
+.modal-close:hover{color:var(--text);background:var(--surface2)}
+.modal-body{padding:20px}
+.modal-footer{padding:14px 20px;border-top:1px solid var(--border);display:flex;gap:8px;justify-content:flex-end}
+
+/* ── Toast ── */
+#toast{position:fixed;bottom:24px;right:24px;z-index:999;background:var(--text);color:white;padding:11px 18px;border-radius:var(--radius);font-size:13px;opacity:0;transform:translateY(8px);transition:all .25s;pointer-events:none;max-width:320px}
+#toast.show{opacity:1;transform:translateY(0)}
+#toast.err{background:var(--coral)}
+
+/* ── Queue patient card ── */
+.q-card{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:var(--radius);border:1px solid var(--border);background:var(--surface);margin-bottom:6px;transition:all .15s}
+.q-card:hover{border-color:var(--border2);box-shadow:0 1px 4px rgba(0,0,0,.06)}
+.q-card.emergency{background:var(--coral-l);border-color:var(--coral-m)}
+.q-card.urgent{background:var(--amber-l);border-color:var(--amber-m)}
+.avatar{width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:600;flex-shrink:0}
+.av-e{background:#F5C4B3;color:#993C1D}
+.av-u{background:#FAC775;color:#854F0B}
+.av-n{background:#C0DD97;color:#3B6D11}
+.pos{width:26px;height:26px;border-radius:50%;background:var(--surface2);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;flex-shrink:0}
+.pos.e{background:#F5C4B3;color:#993C1D}
+.pos.u{background:#FAC775;color:#854F0B}
+
+/* ── Doctor card grid ── */
+.doctor-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:14px}
+.doc-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:18px;transition:all .15s}
+.doc-card:hover{border-color:var(--border2);box-shadow:0 2px 8px rgba(0,0,0,.08)}
+.doc-avatar{width:52px;height:52px;border-radius:50%;background:var(--teal-l);display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:600;color:var(--teal);margin-bottom:12px}
+.doc-name{font-size:15px;font-weight:500;margin-bottom:2px}
+.doc-spec{font-size:12px;color:var(--text2);margin-bottom:8px}
+.doc-meta{font-size:12px;color:var(--text2);margin-bottom:4px}
+.doc-actions{display:flex;gap:6px;margin-top:12px}
+
+/* ── Slots grid ── */
+.slots-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin-top:8px}
+.slot{padding:6px;text-align:center;font-size:12px;border:1px solid var(--border2);border-radius:var(--radius-sm);cursor:pointer;transition:all .15s;color:var(--text2)}
+.slot.available:hover{border-color:var(--teal);color:var(--teal);background:var(--teal-l)}
+.slot.selected{background:var(--teal);color:white;border-color:var(--teal)}
+.slot.taken{background:var(--surface2);color:var(--text3);cursor:not-allowed;text-decoration:line-through}
+
+/* ── Tabs ── */
+.tabs{display:flex;border-bottom:1px solid var(--border);margin-bottom:16px}
+.tab{padding:8px 16px;font-size:13px;cursor:pointer;color:var(--text2);border-bottom:2px solid transparent;margin-bottom:-1px;transition:all .15s}
+.tab.active{color:var(--teal);border-bottom-color:var(--teal);font-weight:500}
+
+/* ── Invoice items ── */
+.invoice-row{display:grid;grid-template-columns:1fr 80px 100px 36px;gap:8px;align-items:center;margin-bottom:6px}
+.invoice-summary{background:var(--surface2);border-radius:var(--radius-sm);padding:12px 14px;margin-top:10px}
+.inv-line{display:flex;justify-content:space-between;font-size:13px;margin-bottom:4px;color:var(--text2)}
+.inv-line.total{font-weight:600;font-size:15px;color:var(--text);margin-top:6px;padding-top:6px;border-top:1px solid var(--border2)}
+
+/* ── Vital signs ── */
+.vitals-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.vital-box{background:var(--surface2);border-radius:var(--radius-sm);padding:10px 12px;text-align:center}
+.vital-val{font-size:18px;font-weight:600;color:var(--text)}
+.vital-label{font-size:11px;color:var(--text3);margin-top:2px}
+
+/* ── Empty state ── */
+.empty{text-align:center;padding:48px 20px;color:var(--text2)}
+.empty-icon{font-size:44px;margin-bottom:12px}
+
+/* ── Responsive ── */
+@media(max-width:900px){
+  .stats-grid{grid-template-columns:1fr 1fr}
+  .form-grid{grid-template-columns:1fr}
+  .field.span-2{grid-column:span 1}
+}
+
+.api-banner{background:var(--coral-l);border-bottom:2px solid var(--coral-m);color:var(--coral);padding:10px 24px;font-size:13px;text-align:center;display:none}
+</style>
+</head>
+<body>
+<div id="api-banner" class="api-banner">⚠️ Cannot connect to servers. Make sure both are running: <strong>python app.py</strong> (port 5000) and <strong>mvn spring-boot:run</strong> (port 8080), then refresh.</div>
+
+<div class="shell">
+<!-- ══ NAV ══ -->
+<nav class="nav">
+  <div class="nav-logo">
+    <div class="nav-logo-name">MedQueue Pro</div>
+    <div class="nav-logo-sub">Hospital Management</div>
+  </div>
+
+  <div class="nav-section">Reception</div>
+  <div class="nav-item active" onclick="showPage('queue')" id="nav-queue">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+    Patient Queue
+    <span class="nav-badge" id="nav-queue-badge" style="display:none">0</span>
+  </div>
+  <div class="nav-item" onclick="showPage('appointments')" id="nav-appointments">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+    Appointments
+  </div>
+
+  <div class="nav-section">Clinical</div>
+  <div class="nav-item" onclick="showPage('records')" id="nav-records">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14,2 14,8 20,8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10,9 9,9 8,9"/></svg>
+    Medical Records
+  </div>
+  <div class="nav-item" onclick="showPage('billing')" id="nav-billing">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+    Billing
+  </div>
+
+  <div class="nav-section">Admin</div>
+  <div class="nav-item" onclick="showPage('doctors')" id="nav-doctors">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+    Doctors
+  </div>
+  <div class="nav-item" onclick="showPage('dashboard')" id="nav-dashboard">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+    Dashboard
+  </div>
+</nav>
+
+<!-- ══ MAIN ══ -->
+<div class="content-wrap">
+
+<!-- ── QUEUE PAGE ── -->
+<div class="page active" id="page-queue">
+  <div class="topbar">
+    <div><div class="topbar-title">Patient Queue</div><div class="topbar-sub">Live priority queue — auto-sorted by urgency</div></div>
+    <button class="btn" onclick="loadAll()">↻ Refresh</button>
+    <button class="btn btn-primary" onclick="openModal('modal-register')">＋ Register Patient</button>
+    <button class="btn" onclick="callNext()">🔔 Call Next</button>
+  </div>
+  <div style="padding:20px 24px 0">
+    <div class="stats-grid" id="queue-stats">
+      <div class="stat-card teal"><div class="stat-icon">👥</div><div class="stat-val" id="sq-waiting">—</div><div class="stat-label">Waiting</div></div>
+      <div class="stat-card coral"><div class="stat-icon">🚨</div><div class="stat-val" id="sq-emergency">—</div><div class="stat-label">Emergencies</div></div>
+      <div class="stat-card amber"><div class="stat-icon">⚠️</div><div class="stat-val" id="sq-urgent">—</div><div class="stat-label">Urgent</div></div>
+      <div class="stat-card blue"><div class="stat-icon">✓</div><div class="stat-val" id="sq-seen">—</div><div class="stat-label">Seen Today</div></div>
+    </div>
+  </div>
+  <div style="padding:0 24px 24px">
+    <div class="tabs">
+      <div class="tab active" id="qtab-waiting" onclick="switchQTab('waiting')">Waiting</div>
+      <div class="tab" id="qtab-seen" onclick="switchQTab('seen')">Seen</div>
+      <div class="tab" id="qtab-dismissed" onclick="switchQTab('dismissed')">Dismissed</div>
+    </div>
+    <div id="queue-list"></div>
+  </div>
+</div>
+
+<!-- ── APPOINTMENTS PAGE ── -->
+<div class="page" id="page-appointments">
+  <div class="topbar">
+    <div><div class="topbar-title">Appointments</div><div class="topbar-sub">Schedule & manage patient appointments</div></div>
+    <input type="date" id="appt-filter-date" style="padding:7px 10px;border:1px solid var(--border2);border-radius:var(--radius-sm);font-size:13px;background:var(--bg)" onchange="loadAppointments()"/>
+    <button class="btn btn-primary" onclick="openModal('modal-appt')">＋ Book Appointment</button>
+  </div>
+  <div style="padding:24px">
+    <div class="card">
+      <div class="card-header"><span class="card-title">Scheduled Appointments</span></div>
+      <div class="table-wrap"><table>
+        <thead><tr><th>Patient</th><th>Doctor</th><th>Date & Time</th><th>Type</th><th>Reason</th><th>Status</th><th>Actions</th></tr></thead>
+        <tbody id="appt-tbody"></tbody>
+      </table></div>
+    </div>
+  </div>
+</div>
+
+<!-- ── RECORDS PAGE ── -->
+<div class="page" id="page-records">
+  <div class="topbar">
+    <div><div class="topbar-title">Medical Records</div><div class="topbar-sub">Patient diagnoses, prescriptions & visit notes</div></div>
+    <input type="text" id="rec-search" placeholder="Search by patient name…" style="padding:7px 10px;border:1px solid var(--border2);border-radius:var(--radius-sm);font-size:13px;background:var(--bg);width:220px" oninput="loadRecords()"/>
+    <button class="btn btn-primary" onclick="openModal('modal-record')">＋ New Record</button>
+  </div>
+  <div style="padding:24px">
+    <div class="card">
+      <div class="card-header"><span class="card-title">Visit Records</span></div>
+      <div class="table-wrap"><table>
+        <thead><tr><th>Patient</th><th>Doctor</th><th>Diagnosis</th><th>Treatment</th><th>Date</th><th>Follow-up</th><th>Action</th></tr></thead>
+        <tbody id="rec-tbody"></tbody>
+      </table></div>
+    </div>
+  </div>
+</div>
+
+<!-- ── BILLING PAGE ── -->
+<div class="page" id="page-billing">
+  <div class="topbar">
+    <div><div class="topbar-title">Billing & Invoices</div><div class="topbar-sub">Create and manage patient invoices</div></div>
+    <button class="btn btn-primary" onclick="openModal('modal-invoice')">＋ New Invoice</button>
+  </div>
+  <div style="padding:24px">
+    <div class="stats-grid" style="grid-template-columns:repeat(3,1fr)">
+      <div class="stat-card teal"><div class="stat-icon">💰</div><div class="stat-val" id="rev-total">—</div><div class="stat-label">Total Revenue (ETB)</div></div>
+      <div class="stat-card coral"><div class="stat-icon">📋</div><div class="stat-val" id="rev-unpaid">—</div><div class="stat-label">Unpaid Invoices</div></div>
+      <div class="stat-card blue"><div class="stat-icon">✅</div><div class="stat-val" id="rev-paid">—</div><div class="stat-label">Paid Invoices</div></div>
+    </div>
+    <div class="card">
+      <div class="card-header"><span class="card-title">Invoices</span>
+        <select id="inv-filter" onchange="loadInvoices()" style="font-size:12px;padding:4px 8px;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--bg)">
+          <option value="">All</option><option value="unpaid">Unpaid</option><option value="paid">Paid</option>
+        </select>
+      </div>
+      <div class="table-wrap"><table>
+        <thead><tr><th>#</th><th>Patient</th><th>Doctor</th><th>Total (ETB)</th><th>Status</th><th>Date</th><th>Actions</th></tr></thead>
+        <tbody id="inv-tbody"></tbody>
+      </table></div>
+    </div>
+  </div>
+</div>
+
+<!-- ── DOCTORS PAGE ── -->
+<div class="page" id="page-doctors">
+  <div class="topbar">
+    <div><div class="topbar-title">Doctors</div><div class="topbar-sub">Manage medical staff & schedules</div></div>
+    <button class="btn btn-primary" onclick="openModal('modal-doctor')">＋ Add Doctor</button>
+  </div>
+  <div style="padding:24px">
+    <div class="doctor-grid" id="doctor-grid"></div>
+  </div>
+</div>
+
+<!-- ── DASHBOARD PAGE ── -->
+<div class="page" id="page-dashboard">
+  <div class="topbar">
+    <div><div class="topbar-title">Dashboard</div><div class="topbar-sub">Hospital overview & activity log</div></div>
+    <button class="btn" onclick="loadAll()">↻ Refresh</button>
+  </div>
+  <div style="padding:24px">
+    <div class="stats-grid">
+      <div class="stat-card teal"><div class="stat-icon">👥</div><div class="stat-val" id="ds-waiting">—</div><div class="stat-label">In Queue</div></div>
+      <div class="stat-card blue"><div class="stat-icon">📅</div><div class="stat-val" id="ds-appts">—</div><div class="stat-label">Today's Appointments</div></div>
+      <div class="stat-card amber"><div class="stat-icon">💰</div><div class="stat-val" id="ds-revenue">—</div><div class="stat-label">Revenue (ETB)</div></div>
+      <div class="stat-card coral"><div class="stat-icon">🩺</div><div class="stat-val" id="ds-doctors">—</div><div class="stat-label">Doctors Available</div></div>
+    </div>
+    <div class="card">
+      <div class="card-header"><span class="card-title">Recent Activity Log</span></div>
+      <div class="table-wrap"><table>
+        <thead><tr><th>Time</th><th>Action</th><th>Details</th></tr></thead>
+        <tbody id="audit-tbody"></tbody>
+      </table></div>
+    </div>
+  </div>
+</div>
+
+</div><!-- end content-wrap -->
+</div><!-- end shell -->
+
+<!-- ══ MODALS ══ -->
+
+<!-- Register Patient -->
+<div class="overlay" id="modal-register">
+  <div class="modal">
+    <div class="modal-header"><span class="modal-title">Register Patient</span><button class="modal-close" onclick="closeModal('modal-register')">×</button></div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="field span-2"><label>Full Name *</label><input id="rp-name" placeholder="Patient full name"/></div>
+        <div class="field"><label>Age</label><input id="rp-age" type="number" placeholder="Age" min="1" max="120"/></div>
+        <div class="field"><label>Gender</label><select id="rp-gender"><option value="">—</option><option>Male</option><option>Female</option><option>Other</option></select></div>
+        <div class="field"><label>Phone</label><input id="rp-phone" placeholder="+251…"/></div>
+        <div class="field"><label>Blood Type</label><select id="rp-blood"><option value="">Unknown</option><option>A+</option><option>A-</option><option>B+</option><option>B-</option><option>AB+</option><option>AB-</option><option>O+</option><option>O-</option></select></div>
+        <div class="field span-2"><label>Chief Complaint *</label><input id="rp-complaint" placeholder="e.g. chest pain, high fever…"/></div>
+        <div class="field span-2"><label>Known Allergies</label><input id="rp-allergies" placeholder="e.g. penicillin, peanuts…"/></div>
+        <div class="field span-2"><label>Priority *</label>
+          <div class="priority-group">
+            <div class="prio-opt" id="rp-r-emergency" onclick="rpSelectPriority('emergency')">🚨 Emergency</div>
+            <div class="prio-opt" id="rp-r-urgent" onclick="rpSelectPriority('urgent')">⚠️ Urgent</div>
+            <div class="prio-opt sel-normal" id="rp-r-normal" onclick="rpSelectPriority('normal')">✓ Normal</div>
+          </div>
+        </div>
+        <div class="field span-2"><label>Assign Doctor</label><select id="rp-doctor"><option value="">Auto-assign</option></select></div>
+        <div class="field span-2"><label>Notes</label><textarea id="rp-notes" placeholder="Additional notes…"></textarea></div>
+      </div>
+    </div>
+    <div class="modal-footer"><button class="btn" onclick="closeModal('modal-register')">Cancel</button><button class="btn btn-primary" onclick="registerPatient()">Add to Queue</button></div>
+  </div>
+</div>
+
+<!-- Book Appointment -->
+<div class="overlay" id="modal-appt">
+  <div class="modal">
+    <div class="modal-header"><span class="modal-title">Book Appointment</span><button class="modal-close" onclick="closeModal('modal-appt')">×</button></div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="field span-2"><label>Patient Name *</label><input id="ap-name" placeholder="Patient full name"/></div>
+        <div class="field"><label>Patient Phone</label><input id="ap-phone" placeholder="+251…"/></div>
+        <div class="field"><label>Type</label><select id="ap-type"><option value="consultation">Consultation</option><option value="follow-up">Follow-up</option><option value="procedure">Procedure</option><option value="checkup">Checkup</option></select></div>
+        <div class="field span-2"><label>Doctor *</label><select id="ap-doctor" onchange="loadSlots()"><option value="">Select doctor…</option></select></div>
+        <div class="field"><label>Date *</label><input id="ap-date" type="date" onchange="loadSlots()"/></div>
+        <div class="field"><label>Time *</label><div id="ap-slots"><p style="font-size:12px;color:var(--text3)">Select a doctor and date first</p></div></div>
+        <div class="field span-2"><label>Reason</label><textarea id="ap-reason" placeholder="Reason for visit…" style="min-height:55px"></textarea></div>
+      </div>
+    </div>
+    <div class="modal-footer"><button class="btn" onclick="closeModal('modal-appt')">Cancel</button><button class="btn btn-primary" onclick="bookAppointment()">Book</button></div>
+  </div>
+</div>
+
+<!-- Medical Record -->
+<div class="overlay" id="modal-record">
+  <div class="modal" style="max-width:620px">
+    <div class="modal-header"><span class="modal-title">New Medical Record</span><button class="modal-close" onclick="closeModal('modal-record')">×</button></div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="field span-2"><label>Patient Name *</label><input id="mr-name" placeholder="Patient full name"/></div>
+        <div class="field span-2"><label>Doctor *</label><select id="mr-doctor"><option value="">Select doctor…</option></select></div>
+        <div class="field span-2"><label>Diagnosis *</label><input id="mr-diagnosis" placeholder="Primary diagnosis"/></div>
+        <div class="field span-2"><label>Symptoms</label><textarea id="mr-symptoms" placeholder="List of symptoms…" style="min-height:55px"></textarea></div>
+        <div class="field span-2"><label>Treatment Plan</label><textarea id="mr-treatment" placeholder="Treatment prescribed…" style="min-height:55px"></textarea></div>
+        <div class="field span-2"><label>Prescription</label><textarea id="mr-prescription" placeholder="Medications & dosage…" style="min-height:55px"></textarea></div>
+        <div class="field"><label>Follow-up Date</label><input id="mr-followup" type="date"/></div>
+        <div class="field"><label>Blood Pressure</label><input id="mr-bp" placeholder="e.g. 120/80"/></div>
+        <div class="field"><label>Temperature (°C)</label><input id="mr-temp" placeholder="e.g. 37.2" type="number" step="0.1"/></div>
+        <div class="field"><label>Heart Rate (bpm)</label><input id="mr-hr" placeholder="e.g. 72" type="number"/></div>
+        <div class="field span-2"><label>Doctor's Notes</label><textarea id="mr-notes" placeholder="Additional clinical notes…"></textarea></div>
+      </div>
+    </div>
+    <div class="modal-footer"><button class="btn" onclick="closeModal('modal-record')">Cancel</button><button class="btn btn-primary" onclick="saveRecord()">Save Record</button></div>
+  </div>
+</div>
+
+<!-- New Invoice -->
+<div class="overlay" id="modal-invoice">
+  <div class="modal" style="max-width:580px">
+    <div class="modal-header"><span class="modal-title">New Invoice</span><button class="modal-close" onclick="closeModal('modal-invoice')">×</button></div>
+    <div class="modal-body">
+      <div class="form-grid" style="margin-bottom:14px">
+        <div class="field"><label>Patient Name *</label><input id="inv-patient" placeholder="Patient name"/></div>
+        <div class="field"><label>Patient Phone</label><input id="inv-phone" placeholder="+251…"/></div>
+        <div class="field span-2"><label>Doctor</label><select id="inv-doctor"><option value="">Select doctor…</option></select></div>
+      </div>
+      <div class="field"><label>Services / Items *</label></div>
+      <div id="inv-items-list" style="margin:8px 0"></div>
+      <button class="btn btn-sm" onclick="addInvoiceItem()" style="margin-bottom:10px">＋ Add Item</button>
+      <div id="inv-summary" class="invoice-summary" style="display:none"></div>
+      <div class="field" style="margin-top:10px"><label>Notes</label><textarea id="inv-notes" placeholder="Payment notes…" style="min-height:50px"></textarea></div>
+    </div>
+    <div class="modal-footer"><button class="btn" onclick="closeModal('modal-invoice')">Cancel</button><button class="btn btn-primary" onclick="saveInvoice()">Create Invoice</button></div>
+  </div>
+</div>
+
+<!-- Add Doctor -->
+<div class="overlay" id="modal-doctor">
+  <div class="modal">
+    <div class="modal-header"><span class="modal-title" id="doc-modal-title">Add Doctor</span><button class="modal-close" onclick="closeModal('modal-doctor')">×</button></div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="field span-2"><label>Full Name *</label><input id="doc-name" placeholder="Dr. Full Name"/></div>
+        <div class="field"><label>Specialty *</label><input id="doc-specialty" placeholder="e.g. Cardiology"/></div>
+        <div class="field"><label>Max Daily Patients</label><input id="doc-max" type="number" value="20" min="1"/></div>
+        <div class="field"><label>Phone</label><input id="doc-phone" placeholder="+251…"/></div>
+        <div class="field"><label>Email</label><input id="doc-email" placeholder="doctor@hospital.et"/></div>
+        <div class="field span-2"><label>Bio</label><textarea id="doc-bio" placeholder="Brief professional biography…"></textarea></div>
+        <div class="field span-2"><label>Working Days</label>
+          <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:4px" id="doc-days">
+            <label style="display:flex;align-items:center;gap:4px;font-size:13px;font-weight:400"><input type="checkbox" value="Mon" checked/> Mon</label>
+            <label style="display:flex;align-items:center;gap:4px;font-size:13px;font-weight:400"><input type="checkbox" value="Tue" checked/> Tue</label>
+            <label style="display:flex;align-items:center;gap:4px;font-size:13px;font-weight:400"><input type="checkbox" value="Wed" checked/> Wed</label>
+            <label style="display:flex;align-items:center;gap:4px;font-size:13px;font-weight:400"><input type="checkbox" value="Thu" checked/> Thu</label>
+            <label style="display:flex;align-items:center;gap:4px;font-size:13px;font-weight:400"><input type="checkbox" value="Fri" checked/> Fri</label>
+            <label style="display:flex;align-items:center;gap:4px;font-size:13px;font-weight:400"><input type="checkbox" value="Sat"/> Sat</label>
+            <label style="display:flex;align-items:center;gap:4px;font-size:13px;font-weight:400"><input type="checkbox" value="Sun"/> Sun</label>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer"><button class="btn" onclick="closeModal('modal-doctor')">Cancel</button><button class="btn btn-primary" id="doc-save-btn" onclick="saveDoctor()">Add Doctor</button></div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+// Python (port 5000) → patient queue & DSA
+// Java   (port 8080) → doctors, appointments, records, billing
+const PYTHON_API = 'http://localhost:5000/api';
+const JAVA_API   = 'http://localhost:8080/api';
+function API(path) {
+  if (/^\/(patients|queue|audit)/.test(path)) return PYTHON_API + path;
+  return JAVA_API + path;
+}
+let rpPriority = 'normal';
+let currentQTab = 'waiting';
+let selectedSlot = '';
+let editingDoctorId = null;
+let invoiceItems = [];
+let doctors = [];
+
+// ── Fetch helpers ────────────────────────────────────────────
+async function api(path, opts={}) {
+  const r = await fetch(API(path), { headers:{'Content-Type':'application/json'}, ...opts });
+  if (!r.ok) { const e = await r.json().catch(()=>({error:r.statusText})); throw new Error(e.error||r.statusText); }
+  return r.json();
+}
+
+// ── Toast ────────────────────────────────────────────────────
+let tt;
+function toast(msg, err=false) {
+  const el = document.getElementById('toast');
+  el.textContent = msg; el.className = 'show' + (err ? ' err' : '');
+  clearTimeout(tt); tt = setTimeout(() => el.className='', 3500);
+}
+
+// ── Modal ────────────────────────────────────────────────────
+function openModal(id) { document.getElementById(id).classList.add('open'); }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+document.querySelectorAll('.overlay').forEach(o => o.addEventListener('click', e => { if(e.target===o) o.classList.remove('open'); }));
+
+// ── Page navigation ──────────────────────────────────────────
+function showPage(p) {
+  document.querySelectorAll('.page').forEach(x => x.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(x => x.classList.remove('active'));
+  document.getElementById('page-'+p).classList.add('active');
+  document.getElementById('nav-'+p).classList.add('active');
+  if(p==='queue') loadQueue();
+  if(p==='appointments') loadAppointments();
+  if(p==='records') loadRecords();
+  if(p==='billing') loadInvoices();
+  if(p==='doctors') loadDoctors();
+  if(p==='dashboard') loadDashboard();
+}
+
+// ── Load all ─────────────────────────────────────────────────
+async function loadAll() {
+  try {
+    document.getElementById('api-banner').style.display = 'none';
+    doctors = await api('/doctors');
+    await loadStats();
+    await loadQueue();
+    populateDoctorDropdowns();
+  } catch(e) {
+    document.getElementById('api-banner').style.display = 'block';
+  }
+}
+
+async function loadStats() {
+  const [ps, js] = await Promise.all([
+    api('/stats'),
+    api('/java-stats').catch(() => ({}))
+  ]);
+  const s = { ...ps, ...js };
+  document.getElementById('sq-waiting').textContent   = s.waiting;
+  document.getElementById('sq-emergency').textContent = s.emergency;
+  document.getElementById('sq-urgent').textContent    = s.urgent;
+  document.getElementById('sq-seen').textContent      = s.seen;
+  const b = document.getElementById('nav-queue-badge');
+  b.textContent = s.waiting; b.style.display = s.waiting > 0 ? '' : 'none';
+}
+
+function populateDoctorDropdowns() {
+  ['rp-doctor','ap-doctor','mr-doctor','inv-doctor'].forEach(id => {
+    const sel = document.getElementById(id);
+    if (!sel) return;
+    const prev = sel.value;
+    const hasAuto = id === 'rp-doctor';
+    sel.innerHTML = hasAuto ? '<option value="">Auto-assign</option>' : '<option value="">Select doctor…</option>';
+    doctors.forEach(d => {
+      const o = document.createElement('option');
+      o.value = id === 'ap-doctor' || id === 'mr-doctor' ? d.id : d.name;
+      o.textContent = d.name + ' — ' + d.specialty + (id==='ap-doctor'&&d.status!=='available'?' ('+d.status+')':'');
+      sel.appendChild(o);
+    });
+    sel.value = prev;
+  });
+}
+
+// ── QUEUE ────────────────────────────────────────────────────
+function switchQTab(tab) {
+  currentQTab = tab;
+  ['waiting','seen','dismissed'].forEach(t => {
+    document.getElementById('qtab-'+t).className = 'tab'+(t===tab?' active':'');
+  });
+  loadQueue();
+}
+
+async function loadQueue() {
+  const patients = await api('/patients?status='+currentQTab);
+  const c = document.getElementById('queue-list');
+  if (!patients.length) {
+    c.innerHTML = `<div class="empty"><div class="empty-icon">${currentQTab==='waiting'?'👥':'✅'}</div><p>No patients ${currentQTab==='waiting'?'in queue':'here'}</p></div>`;
+    return;
+  }
+  c.innerHTML = patients.map((p,i) => {
+    const cls = p.priority==='emergency'?'e':p.priority==='urgent'?'u':'n';
+    return `<div class="q-card ${p.priority!=='normal'?p.priority:''}">
+      ${currentQTab==='waiting'?`<div class="pos ${cls}">${i+1}</div>`:''}
+      <div class="avatar av-${cls}">${initials(p.name)}</div>
+      <div style="flex:1;min-width:0">
+        <div style="font-weight:500;${cls==='e'?'color:#993C1D':cls==='u'?'color:#854F0B':''}">${p.name}${p.age?', '+p.age:''}${p.gender?' ('+p.gender[0]+')':''}</div>
+        <div style="font-size:12px;color:var(--text2)">${p.complaint} · ${p.doctor||'Unassigned'}${p.bloodType?' · '+p.bloodType:''}</div>
+        ${p.allergies?`<div style="font-size:11px;color:var(--coral);margin-top:2px">⚠ Allergies: ${p.allergies}</div>`:''}
+      </div>
+      <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex-shrink:0">
+        <span class="badge badge-${p.priority}">${p.priority}</span>
+        <span style="font-size:11px;color:var(--text3)">${formatTime(p.created_at)}</span>
+      </div>
+      ${currentQTab==='waiting'?`<div style="display:flex;gap:5px">
+        <button class="btn btn-sm" onclick="markSeen('${p.id}')">✓</button>
+        <button class="btn btn-sm btn-danger" onclick="dismissPatient('${p.id}')">✕</button>
+      </div>`:''}
+    </div>`;
+  }).join('');
+}
+
+function rpSelectPriority(p) {
+  rpPriority = p;
+  ['emergency','urgent','normal'].forEach(x => {
+    document.getElementById('rp-r-'+x).className = 'prio-opt'+(x===p?' sel-'+x:'');
+  });
+}
+
+async function registerPatient() {
+  const name = document.getElementById('rp-name').value.trim();
+  const complaint = document.getElementById('rp-complaint').value.trim();
+  if (!name || !complaint) { toast('Name and complaint required',true); return; }
+  try {
+    const p = await api('/patients', { method:'POST', body:JSON.stringify({
+      name, complaint, age:document.getElementById('rp-age').value||null,
+      gender:document.getElementById('rp-gender').value||null,
+      phone:document.getElementById('rp-phone').value||null,
+      bloodType:document.getElementById('rp-blood').value||null,
+      allergies:document.getElementById('rp-allergies').value||null,
+      priority:rpPriority, doctor:document.getElementById('rp-doctor').value||null,
+      notes:document.getElementById('rp-notes').value||null
+    })});
+    closeModal('modal-register');
+    ['rp-name','rp-age','rp-phone','rp-complaint','rp-allergies','rp-notes'].forEach(id=>document.getElementById(id).value='');
+    document.getElementById('rp-blood').value=''; document.getElementById('rp-gender').value='';
+    rpSelectPriority('normal');
+    toast('✓ '+p.name+' added to queue');
+    await loadAll();
+  } catch(e) { toast(e.message,true); }
+}
+
+async function callNext() {
+  try {
+    const r = await api('/patients/call-next', {method:'POST'});
+    toast('🔔 Calling: '+r.patient.name+' ('+r.patient.priority+')');
+    await loadAll();
+  } catch(e) { toast(e.message,true); }
+}
+
+async function markSeen(id) {
+  await api('/patients/'+id, {method:'PATCH', body:JSON.stringify({status:'seen'})});
+  toast('✓ Marked as seen'); await loadAll();
+}
+
+async function dismissPatient(id) {
+  if (!confirm('Dismiss this patient from the queue?')) return;
+  await api('/patients/'+id, {method:'DELETE'});
+  toast('Patient dismissed'); await loadAll();
+}
+
+// ── APPOINTMENTS ─────────────────────────────────────────────
+let apptSelectedSlot = '';
+
+async function loadAppointments() {
+  const date = document.getElementById('appt-filter-date').value;
+  const url = '/appointments' + (date ? '?date='+date : '');
+  const list = await api(url);
+  const tb = document.getElementById('appt-tbody');
+  if (!list.length) { tb.innerHTML = `<tr><td colspan="7" style="text-align:center;padding:32px;color:var(--text3)">No appointments found</td></tr>`; return; }
+  tb.innerHTML = list.map(a => `
+    <tr>
+      <td><strong>${a.patientName}</strong>${a.patientPhone?'<br><span style="font-size:11px;color:var(--text3)">'+a.patientPhone+'</span>':''}</td>
+      <td>${a.doctorName}<br><span style="font-size:11px;color:var(--text3)">${a.specialty}</span></td>
+      <td>${fmtDate(a.date)}<br><span style="font-size:12px;color:var(--text2)">${a.time}</span></td>
+      <td><span class="badge badge-scheduled">${a.type}</span></td>
+      <td style="max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${a.reason||'—'}</td>
+      <td><span class="badge badge-${a.status}">${a.status}</span></td>
+      <td style="white-space:nowrap">
+        ${a.status==='scheduled'?`<button class="btn btn-sm" onclick="updateAppt('${a.id}','completed')">✓ Done</button> `:''}
+        ${a.status!=='cancelled'?`<button class="btn btn-sm btn-danger" onclick="updateAppt('${a.id}','cancelled')">Cancel</button>`:''}
+      </td>
+    </tr>`).join('');
+}
+
+async function loadSlots() {
+  const docId = document.getElementById('ap-doctor').value;
+  const date = document.getElementById('ap-date').value;
+  const cont = document.getElementById('ap-slots');
+  if (!docId || !date) { cont.innerHTML = '<p style="font-size:12px;color:var(--text3)">Select a doctor and date first</p>'; return; }
+  const slots = await api('/appointments/slots?doctorId='+docId+'&date='+date);
+  apptSelectedSlot = '';
+  cont.innerHTML = '<div class="slots-grid">'+slots.map(s =>
+    `<div class="slot ${s.available?'available':'taken'}" onclick="${s.available?`selectSlot('${s.time}',this)`:''}">${s.time}</div>`
+  ).join('')+'</div>';
+}
+
+function selectSlot(time, el) {
+  apptSelectedSlot = time;
+  document.querySelectorAll('.slot').forEach(s => s.classList.remove('selected'));
+  el.classList.add('selected');
+}
+
+async function bookAppointment() {
+  const name = document.getElementById('ap-name').value.trim();
+  const docId = document.getElementById('ap-doctor').value;
+  const date = document.getElementById('ap-date').value;
+  if (!name || !docId || !date || !apptSelectedSlot) { toast('Fill all required fields and select a time slot',true); return; }
+  try {
+    await api('/appointments', {method:'POST', body:JSON.stringify({
+      patientName:name, patientPhone:document.getElementById('ap-phone').value||null,
+      doctorId:docId, date, time:apptSelectedSlot,
+      reason:document.getElementById('ap-reason').value||null,
+      type:document.getElementById('ap-type').value
+    })});
+    closeModal('modal-appt');
+    toast('✓ Appointment booked');
+    loadAppointments();
+  } catch(e) { toast(e.message,true); }
+}
+
+async function updateAppt(id, status) {
+  await api('/appointments/'+id, {method:'PATCH', body:JSON.stringify({status})});
+  toast('Appointment updated'); loadAppointments();
+}
+
+// ── RECORDS ──────────────────────────────────────────────────
+async function loadRecords() {
+  const q = document.getElementById('rec-search').value.trim();
+  const list = await api('/records'+(q?'?patientName='+encodeURIComponent(q):''));
+  const tb = document.getElementById('rec-tbody');
+  if (!list.length) { tb.innerHTML=`<tr><td colspan="7" style="text-align:center;padding:32px;color:var(--text3)">No records found</td></tr>`; return; }
+  tb.innerHTML = list.map(r => `
+    <tr>
+      <td><strong>${r.patientName}</strong></td>
+      <td>${r.doctorName}</td>
+      <td>${r.diagnosis}</td>
+      <td style="max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${r.treatment||'—'}</td>
+      <td>${fmtDate(r.created_at.slice(0,10))}</td>
+      <td>${r.followUpDate?fmtDate(r.followUpDate):'—'}</td>
+      <td><button class="btn btn-sm" onclick="viewRecord('${r.id}')">View</button></td>
+    </tr>`).join('');
+}
+
+async function saveRecord() {
+  const name = document.getElementById('mr-name').value.trim();
+  const docId = document.getElementById('mr-doctor').value;
+  const diag = document.getElementById('mr-diagnosis').value.trim();
+  if (!name || !docId || !diag) { toast('Patient, doctor and diagnosis required',true); return; }
+  const bp = document.getElementById('mr-bp').value;
+  const temp = document.getElementById('mr-temp').value;
+  const hr = document.getElementById('mr-hr').value;
+  await api('/records', {method:'POST', body:JSON.stringify({
+    patientName:name, doctorId:docId, diagnosis:diag,
+    symptoms:document.getElementById('mr-symptoms').value||null,
+    treatment:document.getElementById('mr-treatment').value||null,
+    prescription:document.getElementById('mr-prescription').value||null,
+    followUpDate:document.getElementById('mr-followup').value||null,
+    notes:document.getElementById('mr-notes').value||null,
+    vitalSigns: (bp||temp||hr) ? {bp,temp,hr} : null
+  })});
+  closeModal('modal-record');
+  toast('✓ Record saved');
+  loadRecords();
+}
+
+async function viewRecord(id) {
+  const list = await api('/records');
+  const r = list.find(x=>x.id===id); if(!r) return;
+  alert(`MEDICAL RECORD\n\nPatient: ${r.patientName}\nDoctor: ${r.doctorName}\nDate: ${fmtDate(r.created_at.slice(0,10))}\n\nDiagnosis: ${r.diagnosis}\nSymptoms: ${r.symptoms||'—'}\nTreatment: ${r.treatment||'—'}\nPrescription: ${r.prescription||'—'}\n${r.vitalSigns?`\nVitals: BP ${r.vitalSigns.bp||'—'}, Temp ${r.vitalSigns.temp||'—'}°C, HR ${r.vitalSigns.hr||'—'} bpm`:''}\nFollow-up: ${r.followUpDate?fmtDate(r.followUpDate):'None'}\nNotes: ${r.notes||'—'}`);
+}
+
+// ── BILLING ──────────────────────────────────────────────────
+async function loadInvoices() {
+  const filter = document.getElementById('inv-filter')?.value||'';
+  const list = await api('/invoices'+(filter?'?status='+filter:''));
+  const stats = await api('/stats');
+  document.getElementById('rev-total').textContent = Math.round(stats.totalRevenue).toLocaleString();
+  document.getElementById('rev-unpaid').textContent = stats.unpaidInvoices;
+  const paid = list.filter(i=>i.status==='paid').length;
+  document.getElementById('rev-paid').textContent = paid;
+  const tb = document.getElementById('inv-tbody');
+  if (!list.length) { tb.innerHTML=`<tr><td colspan="7" style="text-align:center;padding:32px;color:var(--text3)">No invoices</td></tr>`; return; }
+  tb.innerHTML = list.map(i => `
+    <tr>
+      <td><strong>${i.number}</strong></td>
+      <td>${i.patientName}${i.patientPhone?'<br><span style="font-size:11px;color:var(--text3)">'+i.patientPhone+'</span>':''}</td>
+      <td>${i.doctorName||'—'}</td>
+      <td><strong>${i.total.toLocaleString()}</strong></td>
+      <td><span class="badge badge-${i.status}">${i.status}</span></td>
+      <td>${fmtDate(i.created_at.slice(0,10))}</td>
+      <td>${i.status==='unpaid'?`<button class="btn btn-sm btn-primary" onclick="markPaid('${i.id}')">Mark Paid</button>`:'<span style="color:var(--text3);font-size:12px">Paid ✓</span>'}</td>
+    </tr>`).join('');
+}
+
+function addInvoiceItem() {
+  invoiceItems.push({desc:'',qty:1,unitPrice:0});
+  renderInvoiceItems();
+}
+
+function renderInvoiceItems() {
+  const c = document.getElementById('inv-items-list');
+  if (!invoiceItems.length) { c.innerHTML=''; document.getElementById('inv-summary').style.display='none'; return; }
+  c.innerHTML = invoiceItems.map((item,i) => `
+    <div class="invoice-row">
+      <input placeholder="Description (e.g. Consultation)" value="${item.desc}" oninput="invoiceItems[${i}].desc=this.value;updateInvSummary()" style="padding:7px 9px;font-size:13px;border:1px solid var(--border2);border-radius:var(--radius-sm);background:var(--bg);color:var(--text)"/>
+      <input type="number" min="1" value="${item.qty}" oninput="invoiceItems[${i}].qty=+this.value;updateInvSummary()" style="padding:7px 9px;font-size:13px;border:1px solid var(--border2);border-radius:var(--radius-sm);background:var(--bg);color:var(--text)"/>
+      <input type="number" min="0" placeholder="Unit price" value="${item.unitPrice||''}" oninput="invoiceItems[${i}].unitPrice=+this.value;updateInvSummary()" style="padding:7px 9px;font-size:13px;border:1px solid var(--border2);border-radius:var(--radius-sm);background:var(--bg);color:var(--text)"/>
+      <button class="btn btn-sm btn-danger" onclick="invoiceItems.splice(${i},1);renderInvoiceItems()" style="padding:5px 8px">✕</button>
+    </div>`).join('');
+  updateInvSummary();
+}
+
+function updateInvSummary() {
+  const sub = invoiceItems.reduce((s,it)=>s+(it.qty*it.unitPrice),0);
+  const tax = Math.round(sub*0.15*100)/100;
+  const total = Math.round((sub+tax)*100)/100;
+  const s = document.getElementById('inv-summary');
+  s.style.display='block';
+  s.innerHTML=`<div class="inv-line"><span>Subtotal</span><span>ETB ${sub.toLocaleString()}</span></div><div class="inv-line"><span>VAT (15%)</span><span>ETB ${tax.toLocaleString()}</span></div><div class="inv-line total"><span>Total</span><span>ETB ${total.toLocaleString()}</span></div>`;
+}
+
+async function saveInvoice() {
+  const name = document.getElementById('inv-patient').value.trim();
+  if (!name || !invoiceItems.length) { toast('Patient name and at least one item required',true); return; }
+  const docSel = document.getElementById('inv-doctor');
+  await api('/invoices', {method:'POST', body:JSON.stringify({
+    patientName:name, patientPhone:document.getElementById('inv-phone').value||null,
+    doctorName:docSel.options[docSel.selectedIndex]?.text?.split(' —')[0]||null,
+    items:invoiceItems, notes:document.getElementById('inv-notes').value||null
+  })});
+  invoiceItems=[];
+  closeModal('modal-invoice');
+  toast('✓ Invoice created');
+  loadInvoices();
+}
+
+async function markPaid(id) {
+  await api('/invoices/'+id, {method:'PATCH', body:JSON.stringify({status:'paid'})});
+  toast('✓ Marked as paid'); loadInvoices();
+}
+
+// ── DOCTORS ──────────────────────────────────────────────────
+async function loadDoctors() {
+  doctors = await api('/doctors');
+  const g = document.getElementById('doctor-grid');
+  if (!doctors.length) { g.innerHTML='<div class="empty"><div class="empty-icon">🩺</div><p>No doctors added yet</p></div>'; return; }
+  g.innerHTML = doctors.map(d => `
+    <div class="doc-card">
+      <div style="display:flex;align-items:flex-start;gap:10px;margin-bottom:10px">
+        <div class="doc-avatar">${d.name.split(' ').filter(w=>w.match(/^[A-Z]/)).pop()?.[0]||'D'}</div>
+        <div style="flex:1">
+          <div class="doc-name">${d.name}</div>
+          <div class="doc-spec">${d.specialty}</div>
+          <span class="badge badge-${d.status}">${d.status}</span>
+        </div>
+      </div>
+      ${d.phone?`<div class="doc-meta">📞 ${d.phone}</div>`:''}
+      ${d.email?`<div class="doc-meta">✉ ${d.email}</div>`:''}
+      <div class="doc-meta">Max ${d.maxDailyPatients} patients/day</div>
+      ${d.bio?`<div style="font-size:12px;color:var(--text2);margin-top:8px;line-height:1.4">${d.bio}</div>`:''}
+      <div style="margin-top:10px">
+        <div style="font-size:11px;color:var(--text3);margin-bottom:4px">WORKING DAYS</div>
+        <div style="display:flex;gap:3px;flex-wrap:wrap">
+          ${['Mon','Tue','Wed','Thu','Fri','Sat','Sun'].map(day=>`<span style="font-size:11px;padding:2px 6px;border-radius:4px;${d.schedule&&d.schedule[day]?'background:var(--teal-l);color:var(--teal)':'background:var(--surface2);color:var(--text3)'}">${day}</span>`).join('')}
+        </div>
+      </div>
+      <div class="doc-actions">
+        <select onchange="updateDoctorStatus('${d.id}',this.value)" style="font-size:12px;padding:5px 8px;border:1px solid var(--border2);border-radius:var(--radius-sm);background:var(--bg);flex:1">
+          <option value="available" ${d.status==='available'?'selected':''}>Available</option>
+          <option value="busy" ${d.status==='busy'?'selected':''}>Busy</option>
+          <option value="off" ${d.status==='off'?'selected':''}>Off</option>
+        </select>
+        <button class="btn btn-sm" onclick="editDoctor('${d.id}')">Edit</button>
+        <button class="btn btn-sm btn-danger" onclick="removeDoctor('${d.id}')">Remove</button>
+      </div>
+    </div>`).join('');
+  populateDoctorDropdowns();
+}
+
+async function updateDoctorStatus(id, status) {
+  await api('/doctors/'+id, {method:'PATCH', body:JSON.stringify({status})});
+  toast('Doctor status updated'); loadDoctors();
+}
+
+function editDoctor(id) {
+  const d = doctors.find(x=>x.id===id); if(!d) return;
+  editingDoctorId = id;
+  document.getElementById('doc-modal-title').textContent = 'Edit Doctor';
+  document.getElementById('doc-save-btn').textContent = 'Save Changes';
+  document.getElementById('doc-name').value = d.name;
+  document.getElementById('doc-specialty').value = d.specialty;
+  document.getElementById('doc-max').value = d.maxDailyPatients||20;
+  document.getElementById('doc-phone').value = d.phone||'';
+  document.getElementById('doc-email').value = d.email||'';
+  document.getElementById('doc-bio').value = d.bio||'';
+  document.querySelectorAll('#doc-days input[type=checkbox]').forEach(cb => {
+    cb.checked = d.schedule && !!d.schedule[cb.value];
+  });
+  openModal('modal-doctor');
+}
+
+async function saveDoctor() {
+  const name = document.getElementById('doc-name').value.trim();
+  const specialty = document.getElementById('doc-specialty').value.trim();
+  if (!name || !specialty) { toast('Name and specialty required',true); return; }
+  const schedule = {};
+  document.querySelectorAll('#doc-days input[type=checkbox]').forEach(cb => {
+    if (cb.checked) schedule[cb.value] = ['08:00','17:00'];
+  });
+  const body = { name, specialty, phone:document.getElementById('doc-phone').value||null, email:document.getElementById('doc-email').value||null, bio:document.getElementById('doc-bio').value||null, maxDailyPatients:+document.getElementById('doc-max').value||20, schedule };
+  if (editingDoctorId) {
+    await api('/doctors/'+editingDoctorId, {method:'PATCH', body:JSON.stringify(body)});
+    toast('✓ Doctor updated');
+  } else {
+    await api('/doctors', {method:'POST', body:JSON.stringify(body)});
+    toast('✓ Doctor added');
+  }
+  editingDoctorId = null;
+  document.getElementById('doc-modal-title').textContent = 'Add Doctor';
+  document.getElementById('doc-save-btn').textContent = 'Add Doctor';
+  closeModal('modal-doctor');
+  loadDoctors();
+}
+
+async function removeDoctor(id) {
+  const d = doctors.find(x=>x.id===id);
+  if (!confirm(`Remove ${d?.name}? This cannot be undone.`)) return;
+  await api('/doctors/'+id, {method:'DELETE'});
+  toast('Doctor removed'); loadDoctors();
+}
+
+// ── DASHBOARD ────────────────────────────────────────────────
+async function loadDashboard() {
+  const s = await api('/stats');
+  document.getElementById('ds-waiting').textContent  = s.waiting;
+  document.getElementById('ds-appts').textContent   = s.todayAppts;
+  document.getElementById('ds-revenue').textContent = Math.round(s.totalRevenue).toLocaleString();
+  document.getElementById('ds-doctors').textContent = s.availableDoctors;
+  const audit = await api('/audit');
+  const tb = document.getElementById('audit-tbody');
+  if (!audit.length) { tb.innerHTML=`<tr><td colspan="3" style="text-align:center;padding:24px;color:var(--text3)">No activity yet</td></tr>`; return; }
+  const actionLabels = {REGISTER_PATIENT:'Patient registered',CALL_NEXT:'Patient called',UPDATE_PATIENT:'Patient updated',DISMISS_PATIENT:'Patient dismissed',ADD_DOCTOR:'Doctor added',UPDATE_DOCTOR:'Doctor updated',REMOVE_DOCTOR:'Doctor removed',BOOK_APPOINTMENT:'Appointment booked',UPDATE_APPOINTMENT:'Appointment updated',CANCEL_APPOINTMENT:'Appointment cancelled',CREATE_RECORD:'Record created',CREATE_INVOICE:'Invoice created',UPDATE_INVOICE:'Invoice updated'};
+  tb.innerHTML = audit.slice(0,30).map(a => {
+    const d = a.details ? (typeof a.details==='string'?JSON.parse(a.details):a.details) : {};
+    const detail = d.name||d.patientName||d.doctorName||(d.number?'Invoice '+d.number:'')||a.entityId?.slice(0,8)||'';
+    return `<tr><td style="color:var(--text3);white-space:nowrap">${new Date(a.timestamp).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})}</td><td>${actionLabels[a.action]||a.action}</td><td>${detail}</td></tr>`;
+  }).join('');
+}
+
+// ── Helpers ──────────────────────────────────────────────────
+function initials(n) { return n.split(' ').map(w=>w[0]).slice(0,2).join('').toUpperCase(); }
+function formatTime(iso) {
+  const m = Math.round((Date.now()-new Date(iso))/60000);
+  if(m<1) return 'just now'; if(m<60) return m+'m ago';
+  return Math.floor(m/60)+'h '+m%60+'m ago';
+}
+function fmtDate(d) {
+  if (!d) return '—';
+  const [y,mo,day] = d.split('-');
+  const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  return day+' '+months[+mo-1]+' '+y;
+}
+
+// ── Init ─────────────────────────────────────────────────────
+const today = new Date().toISOString().slice(0,10);
+document.getElementById('appt-filter-date').value = today;
+document.getElementById('ap-date').value = today;
+addInvoiceItem();
+setInterval(loadAll, 30000);
+loadAll();
+</script>
+</body>
+</html>
