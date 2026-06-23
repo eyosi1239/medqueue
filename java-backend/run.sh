@@ -22,7 +22,6 @@ javac -d out \
   src/com/medqueue/controller/MedicalRecordController.java \
   src/com/medqueue/controller/InvoiceController.java \
   src/com/medqueue/controller/StatsController.java \
-  src/com/medqueue/controller/HospitalControllers.java \
   src/com/medqueue/Main.java
 
 echo "Starting Java server on port 8080..."
