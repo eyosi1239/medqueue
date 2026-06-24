@@ -17,7 +17,7 @@ cd ..
 
 echo ""
 echo "Both servers running."
-echo "  Python queue: http://localhost:5000"
+echo "  Python queue: http://localhost:5001"
 echo "  Java backend: http://localhost:8080"
 echo ""
 echo "Open frontend/index.html in your browser."

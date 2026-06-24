@@ -1,0 +1,20 @@
+services:
+  frontend:
+    build: ./frontend
+    ports:
+      - "3000:3000"
+    depends_on:
+      - java-backend
+      - python-dsa
+
+  java-backend:
+    build: ./java-backend
+    ports:
+      - "8080:8080"
+
+  python-dsa:
+    build: ./python-dsa
+    ports:
+      - "5001:5001"
+    volumes:
+      - ./python-dsa/patients.json:/app/patients.json

@@ -246,9 +246,9 @@ def get_audit():
 # ── Health check ─────────────────────────────────────────────
 @app.get("/api/health")
 def health():
-    return jsonify({"service": "python-dsa", "status": "ok", "port": 5000})
+    return jsonify({"service": "python-dsa", "status": "ok", "port": 5001})
 
 if __name__ == "__main__":
-    print("✅ Python DSA API running at http://localhost:5000")
+    print("✅ Python DSA API running at http://localhost:5001")
     print("   Structures: PriorityQueue (min-heap), LinkedList, GreedyScheduler")
-    app.run(port=5000, debug=False)
+    app.run(host="0.0.0.0", port=5001, debug=False)

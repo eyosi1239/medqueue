@@ -198,7 +198,7 @@ tr:hover td{background:var(--surface2)}
 </style>
 </head>
 <body>
-<div id="api-banner" class="api-banner">⚠️ Cannot connect to servers. Make sure both are running: <strong>python app.py</strong> (port 5000) and <strong>mvn spring-boot:run</strong> (port 8080), then refresh.</div>
+<div id="api-banner" class="api-banner">⚠️ Cannot connect to servers. Make sure both are running: <strong>python app.py</strong> (port 5001) and <strong>java -cp out com.medqueue.Main</strong> (port 8080), then refresh.</div>
 
 <div class="shell">
 <!-- ══ NAV ══ -->
@@ -494,10 +494,10 @@ tr:hover td{background:var(--surface2)}
 <script>
 // Python (port 5000) → patient queue & DSA
 // Java   (port 8080) → doctors, appointments, records, billing
-const PYTHON_API = 'http://localhost:5000/api';
+const PYTHON_API = 'http://localhost:5001/api';
 const JAVA_API   = 'http://localhost:8080/api';
 function API(path) {
-  if (/^\/(patients|queue|audit)/.test(path)) return PYTHON_API + path;
+  if (/^\/(patients|queue|audit|stats)/.test(path)) return PYTHON_API + path;
   return JAVA_API + path;
 }
 let rpPriority = 'normal';
