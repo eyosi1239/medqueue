@@ -35,5 +35,11 @@ public class DataRegistry {
         d3.setBio("Dedicated pediatrician specializing in child care.");
         d3.setWorkingDays("Mon,Tue,Thu,Fri"); d3.setMaxDailyPatients(25);
         doctors.save(d3.getId(), d3);
+
+        Doctor d4 = new Doctor("Dr. Eyossias Tesfaye", "Neurologist");
+        d4.setPhone("+251911000004"); d4.setEmail("yonas@medqueue.et");
+        d4.setBio("Specializes in diagnosing and treating diseases of the brain, spinal cord and nerves..");
+        d4.setWorkingDays("Mon,Tue,Thu,Fri"); d4.setMaxDailyPatients(25);
+        doctors.save(d4.getId(), d4);
     }
 }
